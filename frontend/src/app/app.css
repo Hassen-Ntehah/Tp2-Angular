@@ -1,0 +1,12 @@
+/* Custom component styling */
+.list-group-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.list-group-item:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.card {
+  border-radius: 0.75rem;
+}

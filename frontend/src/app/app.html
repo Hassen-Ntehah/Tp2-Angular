@@ -1,0 +1,174 @@
+<div class="container py-4">
+  <!-- En-tête de la page -->
+  <header class="text-center mb-4">
+    <h1 class="display-5 fw-bold text-success">{{ title }}</h1>
+    <p class="text-muted">Application de gestion de tâches développée avec la stack MEAN (MongoDB, Express, Angular, Node.js)</p>
+  </header>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+      <!-- Messages d'alerte -->
+      @if (errorMessage) {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <strong>Erreur :</strong> {{ errorMessage }}
+          <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+        </div>
+      }
+
+      @if (successMessage) {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          {{ successMessage }}
+          <button type="button" class="btn-close" (click)="successMessage = ''" aria-label="Close"></button>
+        </div>
+      }
+
+      <!-- Formulaire d'ajout / modification -->
+      <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white border-bottom py-3">
+          <h2 class="h5 mb-0 fw-semibold text-secondary">
+            {{ editingTaskId ? 'Modifier la tâche' : 'Nouvelle tâche' }}
+          </h2>
+        </div>
+        <div class="card-body p-4">
+          <form (ngSubmit)="onSubmit()">
+            <!-- Champ Titre -->
+            <div class="mb-3">
+              <label for="taskTitle" class="form-label fw-medium">Titre</label>
+              <input
+                id="taskTitle"
+                type="text"
+                name="title"
+                class="form-control form-control-lg"
+                placeholder="Titre de la tâche"
+                [(ngModel)]="formData.title"
+                required
+              />
+            </div>
+
+            <!-- Champ Description -->
+            <div class="mb-3">
+              <label for="taskDescription" class="form-label fw-medium">Description</label>
+              <textarea
+                id="taskDescription"
+                name="description"
+                rows="3"
+                class="form-control"
+                placeholder="Description de la tâche"
+                [(ngModel)]="formData.description"
+              ></textarea>
+            </div>
+
+            <!-- Boutons d'action du formulaire -->
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success px-4">
+                {{ editingTaskId ? 'Enregistrer la modification' : 'Ajouter une tâche' }}
+              </button>
+
+              @if (editingTaskId) {
+                <button
+                  type="button"
+                  class="btn btn-secondary px-3"
+                  (click)="cancelEdit()"
+                >
+                  Annuler
+                </button>
+              }
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Liste des tâches -->
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h2 class="h5 mb-0 fw-semibold text-secondary">Liste des tâches</h2>
+          <span class="badge bg-secondary rounded-pill">{{ tasks.length }} {{ tasks.length > 1 ? 'tâches' : 'tâche' }}</span>
+        </div>
+
+        <div class="card-body p-3">
+          @if (isLoading) {
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <p class="text-muted mt-2 mb-0">Chargement des tâches...</p>
+            </div>
+          } @else if (tasks.length === 0) {
+            <div class="text-center py-5 text-muted">
+              <p class="fs-5 mb-1">Aucune tâche enregistrée pour le moment.</p>
+              <p class="small">Utilisez le formulaire ci-dessus pour ajouter votre première tâche !</p>
+            </div>
+          } @else {
+            <div class="list-group list-group-flush">
+              @for (task of tasks; track task._id || $index) {
+                <div
+                  class="list-group-item px-3 py-3 rounded mb-2 border d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3"
+                  [class.bg-light]="task.completed"
+                >
+                  <!-- Contenu de la tâche -->
+                  <div class="flex-grow-1 overflow-hidden">
+                    <div class="d-flex align-items-center gap-2">
+                      <h3
+                        class="h6 mb-1 text-break"
+                        [class.text-decoration-line-through]="task.completed"
+                        [class.text-muted]="task.completed"
+                      >
+                        {{ task.title }}
+                      </h3>
+                      @if (task.completed) {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Terminée</span>
+                      } @else {
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">En cours</span>
+                      }
+                    </div>
+
+                    @if (task.description) {
+                      <p
+                        class="mb-0 text-muted small text-break"
+                        [class.text-decoration-line-through]="task.completed"
+                      >
+                        {{ task.description }}
+                      </p>
+                    }
+                  </div>
+
+                  <!-- Boutons d'action pour chaque tâche -->
+                  <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+                    <!-- Bouton vert pour changer le statut -->
+                    <button
+                      type="button"
+                      class="btn btn-success btn-sm"
+                      (click)="toggleTaskStatus(task)"
+                    >
+                      {{ task.completed ? 'Reprendre' : 'Terminer' }}
+                    </button>
+
+                    <!-- Bouton Modifier -->
+                    <button
+                      type="button"
+                      class="btn btn-warning btn-sm text-dark"
+                      (click)="startEdit(task)"
+                    >
+                      Modifier
+                    </button>
+
+                    <!-- Bouton Supprimer -->
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      (click)="deleteTask(task)"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
